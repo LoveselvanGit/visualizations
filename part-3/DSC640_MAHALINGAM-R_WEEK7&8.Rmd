@@ -1,0 +1,131 @@
+---
+title: "DSC640_MAHALINGAM-R_WEEK7&8"
+author: "ANBUSELVAN MAHALINGAM"
+date: "2024-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# Load necessary library
+library(readr)
+
+# Read the CSV file into a data frame
+sports_data  <- read_csv("ppg2008.csv")
+
+# Display summary statistics of the data frame
+summary(sports_data)
+```
+```{r}
+# To create heat maps
+
+# Consider only the numeric values for correlation
+numeric_data <- sports_data[, sapply(sports_data, is.numeric)]
+
+# Calculate the correlation matrix
+corr <- cor(numeric_data, use = "complete.obs")
+
+# Reshape the correlation matrix for plotting
+melted_corr <- melt(corr)
+
+# Create heatmap using ggplot2
+heatmap_plot <- ggplot(data = melted_corr, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal(base_size = 15) + 
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, size = 10, hjust = 1, color = "black"),
+    axis.text.y = element_text(size = 10, color = "black"),
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+    plot.margin = unit(c(1, 1, 1, 1), "cm"),
+    legend.position = "right",
+    legend.title = element_text(size = 15),
+    legend.text = element_text(size = 12)
+  ) +
+  coord_fixed() +
+  ggtitle("R - Correlation Heat Map") +
+  geom_text(aes(Var1, Var2, label = sprintf("%.2f", value)), color = "black", size = 3)
+
+# Save the plot
+ggsave("r_heat_map.png", plot = heatmap_plot, width = 18, height = 16, units = "in")
+```
+
+
+
+```{r}
+# To Create Lollipop chart
+
+# to strip whitespace from column names
+colnames(sports_data) <- trimws(colnames(sports_data))
+
+# to sort the data by points per game in descending order
+data_sorted <- sports_data[order(sports_data$PTS, decreasing = TRUE),]
+
+# To create a lollipop chart
+ggplot(data_sorted, aes(x = reorder(Name, PTS), y = PTS)) +
+  geom_segment(aes(x = reorder(Name, PTS), xend = reorder(Name, PTS), y = 0, yend = PTS), color = "green") +
+  geom_point(color = "blue", size = 3) +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "R Lollipop Chart - Points Per Game for Each Player", x = "Player", y = "Points Per Game (PTS)") +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 5),
+    axis.text.y = element_text(size = 5),
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12)
+  ) +
+  geom_hline(yintercept = seq(0, 30, by = 5), color = "gray", linetype = "dashed")
+
+# To save the plot
+ggsave("r_lollipop_chart.png", width = 12, height = 10, units = "in")
+```
+```{r}
+# Load necessary libraries
+library(readr)
+
+# Load the CSV file
+file_path <- 'costcos-geocoded.csv'
+costco_data <- read_csv(file_path)
+
+# Display the structure and first few rows of the data
+head(costco_data)
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(maps)
+
+# Convert the data frame to an sf object
+costco_sf <- st_as_sf(costco_data, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Create a base map using ggplot2
+world <- st_as_sf(maps::map("world", plot = FALSE, fill = TRUE))
+
+# Plot the locations on the map
+ggplot() +
+  geom_sf(data = world, fill = "white", color = "grey") +
+  geom_sf(data = costco_sf, aes(color = "red"), size = 2, shape = 21, fill = "red") +
+  theme_minimal() +
+  labs(title = "R Spatial chart - Geocoded Locations of Costco Stores",
+       x = "Longitude",
+       y = "Latitude",
+       color = "Locations") +
+  theme(legend.position = "none")
+
+# To save the plot
+ggsave("r_spatial_chart.png", width = 12, height = 10, units = "in")
+
+```
+
+
