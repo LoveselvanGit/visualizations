@@ -1,0 +1,136 @@
+---
+title: "WEEK3&4"
+author: "ANBUSELVAN MAHALINGAM"
+date: "2024-06-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+library(readxl)
+world.population <- read_xlsx("world-population.xlsm")
+head(world.population, n=3)
+```
+
+```{r}
+# Tree Map
+library(treemap)
+
+# Create a decade column
+world.population$Decade <- floor(world.population$Year / 10) * 10
+
+# Summarize population by decade
+library(dplyr)
+decade_world.population <- world.population %>%
+  group_by(Decade) %>%
+  summarize(Total_Population = sum(Population))
+
+# Format Total_Population in thousands (K)
+decade_world.population$Total_Population_K <- round(decade_world.population$Total_Population / 1000)
+
+# Create a custom label
+decade_world.population$Label <- paste(decade_world.population$Decade, "\n", 
+                                       format(decade_world.population$Total_Population_K, big.mark=",", scientific=FALSE), "K")
+
+# Save the treemap to a PNG file
+png(filename = "R-treemap.png", width = 800, height = 600)
+
+
+# Customizing the treemap with combined labels
+treemap(decade_world.population,
+        index = "Label",               # Column for grouping and labeling
+        vSize = "Total_Population",    
+        vColor = "Total_Population",   # Column for color
+        type = "value",                
+        palette = "Blues",             
+        title = "R Treemap - World Population by Decade",
+        fontsize.labels = 9,          
+        fontcolor.labels = "white",    
+        fontface.labels = "bold",     
+        bg.labels = "transparent",     # Background color for labels
+        border.col = "white",          
+        border.lwds = 1,               
+        position.legend = "bottom",    # Position of the legend
+        algorithm = "squarified"       # Layout algorithm
+)
+
+# Close the device to save the file
+dev.off()
+```
+```{r}
+# Area chart
+library(ggplot2)
+
+# User function to format y-axis labels in thousands (K)
+format_in_k <- function(x) {
+  paste0(x / 1000, "K")
+}
+
+# to create area chart with formatted y-axis labels
+area_chart <- ggplot(decade_world.population, aes(x = Decade, y = Total_Population)) +
+  geom_area(fill = "skyblue", alpha = 0.5) +
+  geom_line(color = "blue") +
+  scale_y_continuous(labels = format_in_k) +  # Format y-axis in (K)
+  labs(title = "R Area Chart - World Population by Decade", x = "Decade", y = "Total Population (in K)") +
+  theme_minimal()
+
+# Save the plot to a PNG file
+ggsave(filename = "R-area_chart.png", plot = area_chart, width = 10, height = 6, dpi = 300)
+
+```
+
+```{r}
+# To load the libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# to load the dataset
+expenditures_data <- read.table("expenditures.txt", header = TRUE, sep = "\t")
+
+# Aggregate the data by year and category
+expenditures_agg_data <- expenditures_data %>%
+  group_by(year, category) %>%
+  summarize(total_expenditure = sum(expenditure))
+
+# Spread the data to wide format
+expenditures_wide_data <- expenditures_agg_data %>%
+  spread(key = category, value = total_expenditure, fill = 0)
+
+# Convert data back to long format for plotting
+expenditures_long_data <- expenditures_wide_data %>%
+  gather(key = "category", value = "expenditure", -year)
+
+# Plot the stacked area chart
+stacked_area_chart <- ggplot(expenditures_long_data, aes(x = year, y = expenditure, fill = category)) +
+  geom_area(alpha = 0.6, size = 0.5, colour = "white") +
+  theme_minimal() +
+  labs(title = "R Stacked Area Chart - Expenditures by Category",
+       x = "Year",
+       y = "Expenditure",
+       fill = "Category")
+
+# To save the plot to a PNG file
+ggsave(filename = "R-stacked_area_chart.png", plot = stacked_area_chart, width = 10, height = 6, dpi = 300)
+```
+
+```{r}
+# To plot the step chart
+step_chart <- ggplot(expenditures_agg_data, aes(x = year, y = total_expenditure, color = category)) +
+  geom_step() +
+  theme_minimal() +
+  labs(title = "R Step Chart  Expenditures by Category",
+       x = "Year",
+       y = "Total Expenditure",
+       color = "Category")
+
+# To save the plot to a PNG file
+ggsave(filename = "expenditures_step_chart.png", plot = step_chart, width = 10, height = 6, dpi = 300)
+
+```
+
