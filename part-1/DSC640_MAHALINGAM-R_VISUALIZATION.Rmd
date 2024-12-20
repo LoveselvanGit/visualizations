@@ -1,0 +1,96 @@
+---
+title: "DSC 640 WEEK 1 & 2 EXERCISE - ANBUSELVAM MAHALINGAM"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("tidyr")
+#install.packages("readxl")
+```
+
+
+```{r}
+# To load libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# To set the working directory
+setwd("C:/Users/anu18/Desktop/DSC-640/ex1-2")
+
+# To load the dataset
+hotdog_winners <- readxl::read_excel("hotdog-contest-winners.xlsm", sheet = "hot-dog-contest-winners")
+
+```
+
+```{r}
+# Create the bar chart
+bar_chart <- ggplot(hotdog_winners, aes(x = Year, y = `Dogs eaten`, fill = Winner)) +
+  geom_bar(stat = "identity") +
+  labs(title = "R Program - Bar chart - Number of Hot Dogs Eaten by Winners", x = "Year", y = "Hot Dogs Eaten") +
+  theme_minimal()
+
+# Save the bar chart to a file
+ggsave("R-bar_chart.png", plot = bar_chart, bg = "white", width = 10, height = 8, units = "in", dpi = 300)
+```
+
+```{r}
+# To create a Stacked Bar Chart
+stacked_bar_chart <- ggplot(hotdog_winners, aes(x = Country, y = `Dogs eaten`, fill = Winner)) +
+  geom_bar(stat = "identity") +
+  labs(title = "R - Program - Stacked Bar Chart - Hotdogs Eaten by Winners by Country", x = "Country", y = "Number of Hotdogs") +
+  theme_minimal() +
+  theme(legend.position = "right")
+# Save the bar chart to a file
+ggsave("R-stacked_bar_chart.png", plot = stacked_bar_chart, bg = "white", width = 10, height = 8, units = "in", dpi = 300)
+
+```
+
+```{r}
+# Prepare the data for the pie chart
+winner_country_dist <- hotdog_winners %>%
+  count(Country) %>%
+  mutate(perc = n / sum(n) * 100)
+
+# Create a Pie Chart with Percentage Labels
+pie_chart <- ggplot(winner_country_dist, aes(x = "", y = perc, fill = Country)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  labs(title = "R - Program - pie chart - Distribution of Winners by Country", x = "", y = "") +
+  theme_void() +
+  geom_text(aes(label = paste0(round(perc, 1), "%")), position = position_stack(vjust = 0.5))
+# Save the bar chart to a file
+ggsave("R-pie_chart.png", plot = pie_chart, bg = "white", width = 10, height = 8, units = "in", dpi = 300)
+```
+
+```{r}
+# Create a Donut Chart
+donut_chart <- ggplot(winner_country_dist, aes(x = 2, y = perc, fill = Country)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  xlim(0.5, 2.5) +
+  labs(title = "R Program - Donut Chart - Distribution of Winners by Country", x = "", y = "") +
+  theme_void() +
+  geom_text(aes(label = paste0(round(perc, 1), "%")), position = position_stack(vjust = 0.5)) +
+  annotate("text", x = 1.5, y = 0, label = "Winning Country", size = 4, fontface = 'bold', hjust = 0.5, vjust = 7.0)
+# Save the bar chart to a file
+ggsave("R-donut_chart.png", plot = donut_chart, bg = "white", width = 10, height = 8, units = "in", dpi = 300)
+```
+
+```{r}
+# Line Chart: Trend of Hot Dogs Eaten Over Years
+line_chart <- ggplot(hotdog_winners, aes(x = Year, y = `Dogs eaten`, group = 1)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "R Program - Line Chart - Trend of Hot Dogs Eaten Over Years", x = "Year", y = "Hot Dogs Eaten") +
+  theme_minimal()
+# Save the bar chart to a file
+ggsave("R-line_chart.png", plot = line_chart, bg = "white", width = 10, height = 8, units = "in", dpi = 300)
+```
+
