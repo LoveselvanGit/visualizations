@@ -1,0 +1,179 @@
+---
+title: "DSC640_MAHALINGAM-R_WEEK9&10"
+author: "ANBUSELVAN MAHALINGAM"
+date: "2024-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+# Load necessary library
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggrepel)
+
+# Read the CSV file into a data frame
+crimerate_data  <- read_csv("crimeratesbystate-formatted.csv")
+
+# Display summary statistics of the data frame
+summary(crimerate_data)
+```
+
+```{r}
+# Filter for only the United States aggregated value
+us_data <- crimerate_data %>% filter(state == 'United States')
+
+# Extract values for each crime type from the US DataFrame
+labels <- c('Murder', 'Forcible Rape', 'Robbery', 'Aggravated Assault', 'Burglary', 'Larceny Theft', 'Motor Vehicle Theft')
+values <- us_data %>% select(murder, forcible_rape, robbery, aggravated_assault, burglary, larceny_theft, motor_vehicle_theft) %>% unlist()
+
+# Combine labels and values into a data frame for plotting
+crime_data <- data.frame(labels, values)
+```
+
+
+```{r}
+# To Create Bullet chart
+
+# To Extract values for each crime type from the USA crime dataframe
+labels <- c('Murder', 'Forcible Rape', 'Robbery', 'Aggravated Assault', 'Burglary', 'Larceny Theft', 'Motor Vehicle Theft')
+values <- us_data %>% select(murder, forcible_rape, robbery, aggravated_assault, burglary, larceny_theft, motor_vehicle_theft) %>% unlist()
+targets <- c(10, 40, 150, 300, 800, 2500, 450)
+
+# To combine labels, values, and targets into a data frame for plotting
+crime_data <- data.frame(labels, values, targets)
+
+# User defined function to create bullet chart
+create_bullet_chart <- function(data, labels, targets, title) {
+  ggplot(data, aes(x = labels, y = values)) +
+    geom_bar(stat = 'identity', fill = 'blue', color = 'black', width = 0.4) +
+    geom_segment(aes(x = labels, xend = labels, y = 0, yend = targets), color = 'black', size = 2) +
+    geom_rect(aes(xmin = as.numeric(labels) - 0.2, xmax = as.numeric(labels) + 0.2, ymin = 0, ymax = 0.5 * targets), fill = 'lightgrey') +
+    geom_rect(aes(xmin = as.numeric(labels) - 0.2, xmax = as.numeric(labels) + 0.2, ymin = 0.5 * targets, ymax = 0.75 * targets), fill = 'grey') +
+    geom_rect(aes(xmin = as.numeric(labels) - 0.2, xmax = as.numeric(labels) + 0.2, ymin = 0.75 * targets, ymax = 1.5 * targets), fill = 'darkgrey') +
+    labs(title = title, x = 'Crime Category', y = 'Crime Rate') +
+    theme_minimal()  +
+    theme(
+      plot.background = element_rect(fill = "white"),  # Background color for the entire plot
+      panel.background = element_rect(fill = "white"),  # Background color for the panel
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+}
+
+# Function call to create the bullet chart
+bullet_chart <- create_bullet_chart(crime_data, labels, targets, 'R Bullet Chart - Crime Rates in the USA')
+
+# To save the plot
+ggsave("r_bullet_chart_usa.png", plot = bullet_chart)
+
+# To display the plot
+print(bullet_chart)
+
+```
+
+```{r}
+
+# Extract values for each crime type from the US DataFrame
+crime_data <- us_data %>% 
+  select(murder, forcible_rape, robbery, aggravated_assault, burglary, larceny_theft, motor_vehicle_theft) %>%
+  pivot_longer(cols = everything(), names_to = "Crime_Type", values_to = "Rate")
+
+# Add an angle column for the radial plot
+crime_data <- crime_data %>%
+  mutate(Angle = 2 * pi * (row_number() - 1) / n())
+
+# User-defined function to create circle views chart
+create_circle_views_chart <- function(data, title) {
+  ggplot(data, aes(x = Angle, y = Rate)) +
+    geom_bar(stat = "identity", fill = "blue", alpha = 0.25, color = "blue") +
+    geom_text(aes(label = round(Rate, 1)), nudge_y = 0.05 * max(data$Rate), size = 5) +
+    scale_x_continuous(breaks = data$Angle, labels = data$Crime_Type) +
+    coord_polar(start = 0) +
+    theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(size = 18, face = "bold", color = "darkblue", angle = 10, vjust = 1, hjust = 1),
+      plot.title = element_text(hjust = 0.5, size = 22, face = "bold")
+    ) +
+    labs(title = title, x = "", y = "")
+}
+
+# Call the function to create the circle views chart
+circle_views_chart <- create_circle_views_chart(crime_data, 'R Circle Views Chart - Crime Rates in the USA')
+
+# Save the plot
+ggsave("r_circle_views_chart.png", plot = circle_views_chart, width = 20, height = 20)
+
+# Display the plot
+print(circle_views_chart)
+```
+```{r}
+# To create Box plot
+
+# To load the dataset
+birth_rate_data <- read_csv("birth-rate.csv")
+
+# To reshape the data to long format
+birth_rate_data_long <- birth_rate_data %>%
+  pivot_longer(cols = -Country, names_to = "Year", values_to = "Birth_Rate")
+
+# To convert 'Year' to numeric for proper ordering
+birth_rate_data_long$Year <- as.numeric(birth_rate_data_long$Year)
+
+# To create the box plot
+box_plot <- ggplot(birth_rate_data_long, aes(x = factor(Year), y = Birth_Rate)) +
+  geom_boxplot(fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "R Box Plot - Birth Rates Over Years", x = "Year", y = "Birth Rate") +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white"),  # Background color for the entire plot
+    panel.background = element_rect(fill = "white"),  # Background color for the panel
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+
+# To save the plot
+ggsave("r_box_plot.png", plot = box_plot, width = 16, height = 10)
+
+# To display the plot
+print(box_plot)
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Load the data
+education_df <- read.csv('education.csv')
+
+# Assuming the column name for math scores is 'Math'
+histogram <- ggplot(education_df, aes(x = math)) +
+  geom_histogram(binwidth = 10, fill = 'blue', color = 'black') + 
+  labs(title = 'R Histogram - Math Scores', x = 'Math Scores', y = 'Number of Records') +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white"),  # Background color for the entire plot
+    panel.background = element_rect(fill = "white")  # Background color for the panel
+  )
+
+# To save the plot
+ggsave("r_histogram.png", plot = histogram, width = 16, height = 10)
+
+# To display the plot
+print(histogram)
+
+```
+
+
+
